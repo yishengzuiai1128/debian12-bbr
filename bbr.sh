@@ -1,4 +1,6 @@
 #!/bin/bash
+# 自动修复Windows换行符问题
+sed -i 's/\r$//' "$0"
 
 echo "=============================="
 echo "  Debian 12 BBR 检测/开启脚本"
@@ -17,26 +19,19 @@ if [ "$cc" == "bbr" ]; then
     echo "[OK] BBR 已经开启，无需重复操作"
 else
     echo "[ACTION] 开始启用 BBR..."
-
-    # 启用 fq
     sysctl -w net.core.default_qdisc=fq
-
-    # 启用 bbr
     sysctl -w net.ipv4.tcp_congestion_control=bbr
-
     echo "[OK] 已临时开启 BBR"
 fi
 
-# 4. 写入永久配置（避免重复写入）
+# 4. 永久写入配置
 grep -q "net.core.default_qdisc=fq" /etc/sysctl.conf || echo "net.core.default_qdisc=fq" >> /etc/sysctl.conf
 grep -q "net.ipv4.tcp_congestion_control=bbr" /etc/sysctl.conf || echo "net.ipv4.tcp_congestion_control=bbr" >> /etc/sysctl.conf
 
-# 5. 生效配置
 sysctl -p >/dev/null 2>&1
 
-# 6. 最终验证
+# 5. 最终验证
 final=$(sysctl net.ipv4.tcp_congestion_control | awk '{print $3}')
-
 echo "=============================="
 echo "[RESULT] 当前最终状态:"
 echo "TCP Congestion Control: $final"
@@ -46,5 +41,4 @@ if [ "$final" == "bbr" ]; then
 else
     echo "[WARNING] BBR 未生效，请检查内核支持"
 fi
-
 echo "=============================="
