@@ -27,14 +27,14 @@ else
     echo "[OK] 已临时开启 BBR"
 fi
 
-# 4. 写入永久配置（避免重复）
+# 4. 写入永久配置（避免重复写入）
 grep -q "net.core.default_qdisc=fq" /etc/sysctl.conf || echo "net.core.default_qdisc=fq" >> /etc/sysctl.conf
 grep -q "net.ipv4.tcp_congestion_control=bbr" /etc/sysctl.conf || echo "net.ipv4.tcp_congestion_control=bbr" >> /etc/sysctl.conf
 
-# 5. 生效
+# 5. 生效配置
 sysctl -p >/dev/null 2>&1
 
-# 6. 再次验证
+# 6. 最终验证
 final=$(sysctl net.ipv4.tcp_congestion_control | awk '{print $3}')
 
 echo "=============================="
